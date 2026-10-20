@@ -1,0 +1,26 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AccesoDynamoDB",
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:Scan"
+      ],
+      "Resource": "arn:aws:dynamodb:<REGION>:<ACCOUNT_ID>:table/<PROJECT_NAME>-items"
+    },
+    {
+      "Sid": "LogsEnCloudWatch",
+      "Effect": "Allow",
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Resource": "arn:aws:logs:<REGION>:<ACCOUNT_ID>:log-group:/aws/lambda/<PROJECT_NAME>-api:*"
+    }
+  ]
+}

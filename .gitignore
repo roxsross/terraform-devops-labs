@@ -1,0 +1,29 @@
+# Terraform: estado, planes y caché local
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+tfplan
+crash.log
+crash.*.log
+.terraform.tfstate.lock.info
+
+# Variables locales (pueden tener datos de tu cuenta). Se versionan solo los .example
+*.tfvars
+*.tfvars.json
+!*.tfvars.example
+
+# Paquete de la Lambda generado por archive_file
+**/lambda.zip
+
+# Credenciales
+aws-credentials.sh
+!aws-credentials.sh.example
+.env
+*.pem
+
+# Varios
+.DS_Store
+__pycache__/
+*.pyc
+.agents/

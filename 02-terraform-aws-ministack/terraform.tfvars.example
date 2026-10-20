@@ -1,0 +1,3 @@
+aws_region         = "us-east-1"
+project_name       = "tf-labs-demo01"
+ministack_endpoint = "http://localhost:4566"

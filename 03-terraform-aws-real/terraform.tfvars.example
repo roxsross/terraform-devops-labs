@@ -1,0 +1,9 @@
+aws_region   = "us-east-1"
+project_name = "tf-labs-demo01"
+
+# Dejalo vacío para que Terraform cree el rol de la Lambda (necesitás permiso iam:CreateRole).
+# Si tu usuario NO puede crear roles (por ejemplo, en un sandbox de práctica), completá
+# el ARN de un rol existente que la Lambda pueda asumir, con este formato:
+#   arn:aws:iam::<ACCOUNT_ID>:role/<NOMBRE_DEL_ROL>
+# Ver iam-examples/README.md para crear o revisar ese rol.
+lambda_role_arn = ""
