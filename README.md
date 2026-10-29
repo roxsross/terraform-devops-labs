@@ -1,8 +1,23 @@
 # Terraform DevOps Labs
 
+![Terraform](https://img.shields.io/badge/Terraform-%3E%3D1.5.0-7B42BC?logo=terraform&logoColor=white)
+![kreuzwerker/docker](https://img.shields.io/badge/kreuzwerker%2Fdocker-~%3E4.2.0-2496ED?logo=docker&logoColor=white)
+![hashicorp/aws](https://img.shields.io/badge/hashicorp%2Faws-~%3E6.0-7B42BC?logo=terraform&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)
+![AWS](https://img.shields.io/badge/AWS-232F3E?logo=amazonaws&logoColor=white)
+![AWS Lambda](https://img.shields.io/badge/AWS_Lambda-FF9900?logo=awslambda&logoColor=white)
+![API Gateway](https://img.shields.io/badge/API_Gateway-FF4F8B?logo=amazonapigateway&logoColor=white)
+![DynamoDB](https://img.shields.io/badge/DynamoDB-4053D6?logo=amazondynamodb&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3.13-3776AB?logo=python&logoColor=white)
+![MiniStack](https://img.shields.io/badge/MiniStack-AWS_emulado-4B5563)
+![Kubernetes](https://img.shields.io/badge/Kubernetes-326CE5?logo=kubernetes&logoColor=white)
+![Helm](https://img.shields.io/badge/Helm-0F1689?logo=helm&logoColor=white)
+![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?logo=githubactions&logoColor=white)
+![IaC](https://img.shields.io/badge/IaC-Terraform-844FBA)
+
 Laboratorios prácticos de Terraform: de Docker local a AWS.
 
-Material práctico para aprender Terraform desde cero. Vas a recorrer tres laboratorios, de lo local a la nube: un Nginx en Docker, una API serverless contra un emulador de AWS y la misma API en AWS real. Cada laboratorio es una configuración raíz de Terraform independiente, con su propio state local. No se usan módulos ni workspaces.
+Material práctico para aprender Terraform desde cero. Vas a recorrer tres laboratorios, de lo local a la nube: un Nginx en Docker, una API serverless contra un emulador de AWS y la misma API en AWS real. Cada laboratorio es una configuración raíz de Terraform independiente, con su propio state local. No se usan módulos ni workspaces. Después siguen dos labs de Kubernetes local, sin Terraform: el 04 despliega una app con Gateway API y el 05 instala runners self-hosted de GitHub Actions con Actions Runner Controller (ARC).
 
 Seguí este README de arriba hacia abajo: primero prerrequisitos, después los labs en orden y al final la limpieza y el checklist. La teoría que acompaña cada lab está en [docs/teoria-terraform.md](docs/teoria-terraform.md).
 
@@ -13,10 +28,13 @@ Seguí este README de arriba hacia abajo: primero prerrequisitos, después los l
 | [01 — Docker](01-terraform-docker/README.md) | Imagen y contenedor Nginx en `localhost:8080` | Ciclo `init → plan → apply → destroy`, variables, outputs, state, reemplazo y drift | Tu máquina (Docker) | Ninguno | **Recomendado para empezar** |
 | [02 — MiniStack](02-terraform-aws-ministack/README.md) | API Gateway HTTP API + Lambda (Python) + DynamoDB + IAM | Leer una arquitectura AWS en Terraform, dependencias, permisos, probar una API | Tu máquina (emulador MiniStack en Docker) | Ninguno | Local, AWS emulado |
 | [03 — AWS real](03-terraform-aws-real/README.md) | La misma API del lab 02 | Credenciales, región, roles IAM, limpieza verificada en la nube | Cuenta AWS de práctica | Puede generar costos | **Opcional**, usa AWS real (solo en cuenta autorizada) |
+| [04 — Kubernetes](04-kubernetes/README.md) | App web Node + Valkey publicada con Gateway API (Envoy Gateway) | Objetos de Kubernetes, `kubectl`, Helm, Gateway y HTTPRoute | Tu máquina (Kubernetes de Docker Desktop) | Ninguno | Local, sin Terraform |
+| [05 — GitHub Actions ARC](05-github-actions-arc/README.md) | Controller de ARC + runner scale set con Docker-in-Docker | Runners self-hosted efímeros en Kubernetes, charts OCI, secrets, `runs-on` | Tu máquina (Kubernetes de Docker Desktop) + repo GitHub propio | Ninguno | Local; requiere repo privado propio y PAT |
 
 ```mermaid
 flowchart LR
   L1[01 Docker<br/>para empezar] --> L2[02 MiniStack<br/>AWS emulado] --> L3[03 AWS real<br/>opcional]
+  L3 --> L4[04 Kubernetes<br/>local] --> L5[05 ARC<br/>runners en k8s]
 ```
 
 ## 2. Prerrequisitos
@@ -32,6 +50,10 @@ flowchart LR
 | `curl` | Cualquiera reciente | 01, 02, 03 | `curl --version` |
 | bash | 4+ recomendado (macOS trae 3.2 y alcanza) | Scripts `.sh` | `bash --version` |
 | Cuenta AWS de práctica | Sandbox autorizado, credenciales temporales | Solo 03 | `aws sts get-caller-identity` |
+| Kubernetes de Docker Desktop | Activado en Settings › Kubernetes | 04, 05 | `kubectl config current-context` → `docker-desktop` |
+| `kubectl` | Cualquiera reciente | 04, 05 | `kubectl version --client` |
+| Helm | `>= 3.8` (soporte OCI) | 04, 05 | `helm version` |
+| Repo GitHub propio + PAT | Repo privado; PAT con permisos mínimos | Solo 05 | Ver [El token (PAT)](05-github-actions-arc/README.md#el-token-pat) |
 
 En **Windows**, los scripts `.sh` (`cleanup.sh`, `api.sh`, `aws-credentials.sh`) se ejecutan desde **WSL2** o **Git Bash**. Los comandos de Terraform funcionan igual en PowerShell (para copiar archivos: `Copy-Item origen destino`).
 
@@ -49,7 +71,7 @@ terraform-devops-labs/
 ├── README.md                                   # Este archivo: guía general de los labs
 ├── docs/
 │   └── teoria-terraform.md                     # Teoría para leer junto con los labs
-├── cleanup.sh                                  # Limpieza segura de los tres labs
+├── cleanup.sh                                  # Limpieza segura de los labs 01–03
 ├── .gitignore                                  # Ignora state, tfvars, credenciales, .terraform/ y lambda.zip
 ├── 01-terraform-docker/
 │   ├── README.md                               # Paso a paso del lab 01
@@ -67,20 +89,31 @@ terraform-devops-labs/
 │   ├── api.sh                                  # Prueba la API o carga datos (arma la URL local desde api_id)
 │   ├── terraform.tfvars.example                # Plantilla: copiala a terraform.tfvars
 │   └── .terraform.lock.hcl
-└── 03-terraform-aws-real/
-    ├── README.md                               # Paso a paso del lab 03 (incluye credenciales)
-    ├── versions.tf · providers.tf              # Provider AWS estándar (credenciales del entorno)
-    ├── main.tf                                 # Misma infra; el rol IAM es opcional (13 o 10 recursos)
-    ├── variables.tf · outputs.tf               # aws_region, project_name, lambda_role_arn / mismos outputs que el 02
-    ├── lambda/index.py                         # Igual al del lab 02
-    ├── api.sh                                  # Prueba la API usando terraform output api_url
-    ├── terraform.tfvars.example                # Plantilla: copiala a terraform.tfvars
-    ├── aws-credentials.sh.example              # Plantilla: copiala a aws-credentials.sh y usala con source
-    ├── iam-examples/                           # Trust y permissions policy para reutilizar un rol
-    │   ├── README.md
-    │   ├── trust-policy.json
-    │   └── permissions-policy.json
-    └── .terraform.lock.hcl
+├── 03-terraform-aws-real/
+│   ├── README.md                               # Paso a paso del lab 03 (incluye credenciales)
+│   ├── versions.tf · providers.tf              # Provider AWS estándar (credenciales del entorno)
+│   ├── main.tf                                 # Misma infra; el rol IAM es opcional (13 o 10 recursos)
+│   ├── variables.tf · outputs.tf               # aws_region, project_name, lambda_role_arn / mismos outputs que el 02
+│   ├── lambda/index.py                         # Igual al del lab 02
+│   ├── api.sh                                  # Prueba la API usando terraform output api_url
+│   ├── terraform.tfvars.example                # Plantilla: copiala a terraform.tfvars
+│   ├── aws-credentials.sh.example              # Plantilla: copiala a aws-credentials.sh y usala con source
+│   ├── iam-examples/                           # Trust y permissions policy para reutilizar un rol
+│   │   ├── README.md
+│   │   ├── trust-policy.json
+│   │   └── permissions-policy.json
+│   └── .terraform.lock.hcl
+├── 04-kubernetes/
+│   ├── README.md                               # Arquitectura y orden de los pasos del lab 04
+│   ├── app/                                    # App Node (Dockerfile, package.json, server.js)
+│   ├── k8s/                                    # Manifiestos: namespace, ConfigMap, Valkey, web, Gateway API
+│   └── pasos/                                  # Guía paso a paso (00 a 09)
+└── 05-github-actions-arc/
+    ├── README.md                               # Paso a paso del lab 05 (ARC con Helm)
+    ├── values.yaml                             # Values del runner scale set (dind, min/max runners), sin secretos
+    └── workflow-ejemplo/
+        ├── arc-demo.yml                        # Workflow de prueba: runs-on: arc-runner-set
+        └── Dockerfile                          # Imagen mínima que construye el workflow
 ```
 
 Los archivos que creás vos (`terraform.tfvars`, `aws-credentials.sh`) y los que genera Terraform (`.terraform/`, `terraform.tfstate*`, `lambda.zip`) están ignorados por Git.
@@ -156,6 +189,22 @@ Regla de oro: **leé el plan antes de cada `apply`**. Si propone destruir algo q
 - [ ] `plan` con `13 to add` (o `10` si reutilizás un rol) y `apply`
 - [ ] `./api.sh "" test` termina con `Resultado: TODO OK`
 - [ ] `terraform destroy` o `./cleanup.sh --lab 03`, verificación con AWS CLI y `unset` de credenciales
+
+**Lab 04 — Kubernetes (local)** · [README](04-kubernetes/README.md)
+
+- [ ] `kubectl config current-context` dice `docker-desktop`
+- [ ] Seguiste los pasos de [`04-kubernetes/pasos/`](04-kubernetes/pasos/) en orden
+- [ ] Limpieza según el paso 9 de esa guía
+
+**Lab 05 — GitHub Actions ARC** · [README](05-github-actions-arc/README.md)
+
+- [ ] Leíste la advertencia: runners self-hosted solo en repos privados y propios
+- [ ] Controller instalado: `kubectl get pods -n arc-systems` lo muestra `Running`
+- [ ] PAT cargado con `read -s` y guardado en el Secret `pre-defined-secret`, nunca en archivos
+- [ ] Scale set instalado con `containerMode.type=dind` y listener `Running` en `arc-systems`
+- [ ] `arc-runner-set` visible en Settings › Actions › Runners de tu repo
+- [ ] Workflow `arc-demo.yml` en verde, incluido el `docker build`
+- [ ] [Limpieza](05-github-actions-arc/README.md#limpieza): scale set, controller, namespaces y PAT revocado
 
 ## 7. Limpieza con `cleanup.sh`
 
