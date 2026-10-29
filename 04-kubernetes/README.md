@@ -15,12 +15,12 @@ flowchart LR
     subgraph CL["Clúster: Docker Desktop"]
         subgraph EGS["Namespace: envoy-gateway-system"]
             EG["Envoy Gateway<br/>(controlador)"]
-            ESVC["Service LoadBalancer<br/>envoy-clase-k8s-web-gateway-..."] --> EP["Pod Envoy<br/>(proxy)"]
+            ESVC["Service LoadBalancer<br/>envoy-k8s-lab-web-gateway-..."] --> EP["Pod Envoy<br/>(proxy)"]
         end
 
         GC["GatewayClass: envoy"]
 
-        subgraph NS["Namespace: clase-k8s"]
+        subgraph NS["Namespace: k8s-lab"]
             GW["Gateway: web-gateway<br/>HTTP :8080"]
             RT["HTTPRoute: web<br/>host web.localhost"]
             SW["Service: web :80"]
@@ -51,7 +51,7 @@ Hay dos planos separados:
 
 | Pieza | Qué hace |
 |---|---|
-| **Namespace** `clase-k8s` | Agrupa todo el proyecto. Borrarlo borra todo lo de adentro. |
+| **Namespace** `k8s-lab` | Agrupa todo el proyecto. Borrarlo borra todo lo de adentro. |
 | **ConfigMap** `web-config` | Mensaje, versión y dónde está Valkey. |
 | **Deployment + Service** `valkey` | La base de datos que guarda el contador, en memoria. Solo se alcanza desde adentro del clúster. |
 | **Deployment + Service** `web` | La app Node con 3 copias y un nombre fijo. |

@@ -11,7 +11,7 @@ kubectl config current-context        # docker-desktop
 Mantiene Envoy Gateway y la GatewayClass, por si querés volver a aplicar todo:
 
 ```bash
-kubectl delete namespace clase-k8s
+kubectl delete namespace k8s-lab
 ```
 
 Borra todo lo del namespace: la app, Valkey, el Gateway y la HTTPRoute.
@@ -21,7 +21,7 @@ Para volver a levantar la app de una vez:
 
 ```bash
 kubectl apply -f k8s/
-kubectl config set-context --current --namespace=clase-k8s
+kubectl config set-context --current --namespace=k8s-lab
 ```
 
 `kubectl apply -f` sobre la carpeta aplica los archivos en orden alfabético: por eso están numerados.
@@ -32,7 +32,7 @@ Envoy Gateway (paso 6.1) tiene que estar instalado antes, porque `04` a `06` son
 En orden inverso a como lo creaste:
 
 ```bash
-kubectl delete namespace clase-k8s                 # pasos 3 a 5 y 7
+kubectl delete namespace k8s-lab                 # pasos 3 a 5 y 7
 kubectl delete -f k8s/04-gatewayclass.yaml         # paso 6.2
 helm uninstall eg -n envoy-gateway-system          # paso 6.1: Envoy Gateway y las CRDs
 kubectl delete namespace envoy-gateway-system
@@ -47,5 +47,5 @@ o desactivá **Enable Kubernetes** para apagarlo.
 
 ## Qué deberías ver
 
-- `kubectl get ns` sin `clase-k8s` (y sin `envoy-gateway-system` en la opción B).
+- `kubectl get ns` sin `k8s-lab` (y sin `envoy-gateway-system` en la opción B).
 - `kubectl get crd | grep gateway` vacío después de la opción B.

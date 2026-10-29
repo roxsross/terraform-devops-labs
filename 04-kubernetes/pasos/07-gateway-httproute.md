@@ -7,7 +7,7 @@
 
 | Objeto | Qué hace |
 |---|---|
-| Gateway `web-gateway` | Abre un listener HTTP en el puerto 8080 con la GatewayClass `envoy`. Solo acepta rutas de `clase-k8s` (`from: Same`). |
+| Gateway `web-gateway` | Abre un listener HTTP en el puerto 8080 con la GatewayClass `envoy`. Solo acepta rutas de `k8s-lab` (`from: Same`). |
 | HTTPRoute `web` | Se engancha al Gateway (`parentRefs`) y dice: host `web.localhost`, cualquier ruta, va al Service `web` puerto 80. |
 
 ## web.localhost: un host sin tocar nada
@@ -58,7 +58,7 @@ Mirá lo que creó Envoy Gateway para este Gateway:
 kubectl get deploy,svc -n envoy-gateway-system
 ```
 
-Aparecen un Deployment y un Service `envoy-clase-k8s-web-gateway-...`. El Service es `LoadBalancer`
+Aparecen un Deployment y un Service `envoy-k8s-lab-web-gateway-...`. El Service es `LoadBalancer`
 y Docker Desktop lo publica en `localhost:8080`.
 
 Ahora la regla:
@@ -112,7 +112,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: web
-  namespace: clase-k8s
+  namespace: k8s-lab
 spec:
   rules:
     - host: web.localhost

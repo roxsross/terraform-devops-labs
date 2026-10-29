@@ -1,0 +1,22 @@
+# Workflow de prueba para el runner scale set de ARC.
+# Copialo a .github/workflows/arc-demo.yml en TU repo (privado) y correlo
+# desde Actions › ARC demo › Run workflow.
+# runs-on tiene que coincidir con el nombre del scale set
+# (el nombre del release de Helm, salvo que definas runnerScaleSetName).
+name: ARC demo
+
+on:
+  workflow_dispatch:
+
+jobs:
+  demo:
+    runs-on: arc-runner-set
+    steps:
+      - name: Saludo
+        run: echo "Hola desde un runner de ARC en Kubernetes"
+      - name: Nombre del pod (hostname)
+        run: hostname
+      - name: Sistema operativo
+        run: uname -a
+      - name: Datos del run
+        run: echo "Repo ${{ github.repository }}, run ${{ github.run_id }}, runner ${{ runner.name }}"

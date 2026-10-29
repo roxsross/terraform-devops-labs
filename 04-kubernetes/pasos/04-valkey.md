@@ -17,7 +17,7 @@ flowchart LR
 
 - **Sin contraseña:** el Service es `ClusterIP`, así que Valkey solo se alcanza desde adentro del clúster.
 - **Sin disco:** si el Pod de Valkey se reemplaza, el contador vuelve a 0. Para que los datos sobrevivan
-  haría falta un PersistentVolumeClaim (ver la [demo de volúmenes](../../practicas/04-volumenes/)).
+  haría falta un PersistentVolumeClaim (no se cubre en este laboratorio).
 
 ## Pasos
 

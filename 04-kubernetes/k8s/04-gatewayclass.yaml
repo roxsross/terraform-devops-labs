@@ -1,4 +1,4 @@
-# GatewayClass: el "tipo" de Gateway. Dice qué controlador atiende a los Gateways de esta clase.
+# GatewayClass: el "tipo" de Gateway. Dice qué controlador atiende a los Gateways que la usan.
 #
 # controllerName es fijo: es el nombre con el que se presenta Envoy Gateway.
 # Es un objeto de todo el clúster (no tiene namespace).

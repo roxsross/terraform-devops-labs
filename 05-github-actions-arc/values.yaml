@@ -1,0 +1,29 @@
+# Values de ejemplo para el chart gha-runner-scale-set.
+# NO pongas el token acá: este archivo se versiona.
+#
+# Uso (desde 05-github-actions-arc/):
+#   helm install arc-runner-set \
+#     --namespace arc-runners \
+#     -f values.yaml \
+#     --set githubConfigUrl="${GITHUB_CONFIG_URL}" \
+#     oci://ghcr.io/actions/actions-runner-controller-charts/gha-runner-scale-set
+#
+# Referencia completa:
+# https://github.com/actions/actions-runner-controller/blob/master/charts/gha-runner-scale-set/values.yaml
+
+# URL del repo dueño de los runners: https://github.com/<owner>/<repo>
+# Se pasa con --set para no versionar datos de tu cuenta.
+githubConfigUrl: ""
+
+# Nombre de un Secret que ya existe en el namespace arc-runners
+# y tiene la clave github_token (ver Paso 4 del README).
+githubConfigSecret: pre-defined-secret
+
+# Cantidad mínima y máxima de pods de runner.
+# minRunners: 0 => no hay pods de runner hasta que llega un job.
+minRunners: 0
+maxRunners: 3
+
+# Por defecto el scale set se llama igual que el release de Helm
+# (arc-runner-set) y ese es el valor de runs-on en los workflows.
+# runnerScaleSetName: "mi-scale-set"

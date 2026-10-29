@@ -7,7 +7,7 @@ apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
   name: web-gateway
-  namespace: clase-k8s
+  namespace: k8s-lab
 spec:
   gatewayClassName: envoy      # la GatewayClass de 04-gatewayclass.yaml
   listeners:
@@ -18,4 +18,4 @@ spec:
       port: 8080
       allowedRoutes:
         namespaces:
-          from: Same           # solo acepta HTTPRoute de clase-k8s
+          from: Same           # solo acepta HTTPRoute de k8s-lab

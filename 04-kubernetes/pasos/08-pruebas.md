@@ -56,7 +56,7 @@ kubectl get pods -l app=valkey -w      # Ctrl+C cuando esté Running
 
 **Qué deberías ver:** al recargar, el contador **vuelve a empezar desde 1**. Valkey guardaba todo en memoria,
 y el Pod nuevo arranca vacío. Mientras arranca, la página puede mostrar "Valkey no responde" unos segundos.
-Para que los datos sobrevivan haría falta un PersistentVolumeClaim (ver la [demo de volúmenes](../../practicas/04-volumenes/)).
+Para que los datos sobrevivan haría falta un PersistentVolumeClaim (no se cubre en este laboratorio).
 
 ## 5. Una segunda ruta (desafío)
 
