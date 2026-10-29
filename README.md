@@ -208,7 +208,9 @@ Regla de oro: **leé el plan antes de cada `apply`**. Si propone destruir algo q
 
 ## 7. Limpieza con `cleanup.sh`
 
-`cleanup.sh` limpia los tres labs desde cualquier carpeta (opera siempre sobre el directorio donde está el script). Si un lab todavía tiene recursos en su `terraform.tfstate`, **primero ejecuta `terraform destroy`** y recién después borra los archivos generados.
+Los labs 04 y 05 no usan Terraform y se limpian a mano: ver el paso 9 del [lab 04](04-kubernetes/README.md) y la [limpieza del lab 05](05-github-actions-arc/README.md#limpieza).
+
+`cleanup.sh` limpia los labs 01, 02 y 03 desde cualquier carpeta (opera siempre sobre el directorio donde está el script). Si un lab todavía tiene recursos en su `terraform.tfstate`, **primero ejecuta `terraform destroy`** y recién después borra los archivos generados.
 
 ```text
 Uso: ./cleanup.sh [opciones]
@@ -248,6 +250,7 @@ Antes de cada destroy verifica el prerrequisito: `docker info` (01), `/_ministac
 - Cada lab tiene **su propio state**: no copies `terraform.tfstate` entre carpetas.
 - **Destruí siempre** lo que creaste y, en AWS, verificá con la AWS CLI que no quedó nada.
 - La API de los labs 02 y 03 no tiene autenticación: es didáctica, **no apta para producción**.
+- En el lab 05, el PAT de GitHub va en un Secret de Kubernetes, nunca en comandos ni archivos. Usá runners self-hosted solo en repos privados y propios, y revocá el PAT al terminar.
 
 ## 9. Troubleshooting común
 
