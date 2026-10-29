@@ -10,7 +10,7 @@
 
 ## Objetivo
 
-Instalar **Actions Runner Controller (ARC)** con Helm en el Kubernetes local del laboratorio 04 y registrar un **runner scale set** en un repo propio de GitHub. Al final, un workflow con `runs-on: arc-runner-set` corre en un pod efímero dentro de tu cluster.
+Instalar **Actions Runner Controller (ARC)** con Helm en el Kubernetes local del laboratorio 04 y registrar un **runner scale set** en un repo propio de GitHub. Al final, un workflow con `runs-on: arc-runner-set` corre en un pod efímero dentro de tu cluster y puede hacer `docker build` gracias al modo Docker-in-Docker (`dind`).
 
 ## Qué es ARC y cómo funciona
 
@@ -74,7 +74,7 @@ Con ese valor, el chart arma cada pod de runner así (nombres tomados del templa
 
 > ⚠ **El sidecar `dind` corre como `privileged`**: tiene acceso casi total al nodo. En un cluster local propio es aceptable; en un cluster compartido o productivo no lo es. Alternativas que construyen imágenes sin privilegios: Kaniko o BuildKit en modo rootless (no se cubren en este lab).
 
-Como `dind` es un sidecar nativo de Kubernetes, hace falta un cluster `>= 1.29` (el de Docker Desktop actual lo cumple: `kubectl version`).
+La tabla vale para Kubernetes `>= 1.29` (el de Docker Desktop actual lo cumple: `kubectl version`), donde `dind` corre como sidecar nativo. En clusters `< 1.29`, `dind` aparece como un contenedor más junto a `runner`. Detalle en [Using Docker-in-Docker mode](https://docs.github.com/en/actions/tutorials/use-actions-runner-controller/deploy-runner-scale-sets#using-docker-in-docker-mode).
 
 ## Prerrequisitos
 
@@ -338,7 +338,7 @@ init-dind-externals dind
 runner
 ```
 
-`dind` aparece entre los init containers porque es un sidecar nativo (`restartPolicy: Always`): sigue corriendo junto al `runner` durante todo el job.
+`dind` aparece entre los init containers porque es un sidecar nativo (`restartPolicy: Always`): sigue corriendo junto al `runner` durante todo el job. En clusters `< 1.29` la segunda línea dice `runner dind`.
 
 En GitHub, el log del job:
 

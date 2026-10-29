@@ -20,7 +20,10 @@ crash.*.log
 aws-credentials.sh
 !aws-credentials.sh.example
 .env
+.env.*
 *.pem
+*.secret
+*.token
 
 # Varios
 .DS_Store

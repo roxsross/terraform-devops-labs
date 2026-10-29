@@ -1,6 +1,6 @@
 # Laboratorio 03 — API en AWS real (opcional)
 
-> Navegación: [README general](../README.md) · ← anterior: [Laboratorio 02 — MiniStack](../02-terraform-aws-ministack/README.md) · siguiente: ninguno (último lab) →
+> Navegación: [README general](../README.md) · ← anterior: [Laboratorio 02 — MiniStack](../02-terraform-aws-ministack/README.md) · siguiente: [Laboratorio 04 — Kubernetes](../04-kubernetes/README.md) →
 
 > ⚠️ **Advertencia — leé esto antes de empezar.**
 >
