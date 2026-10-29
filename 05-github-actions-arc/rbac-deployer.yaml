@@ -86,12 +86,9 @@ metadata:
   name: arc-deployer
   namespace: k8s-lab-prod
 rules:
-  # Helm guarda cada release como un Secret (sh.helm.release.v1.app.vN)
   - apiGroups: [""]
     resources: ["secrets"]
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
-  # Objetos del chart: ConfigMap, Services y Deployments (web y valkey).
-  # delete: helm borra lo que sale del chart en un upgrade y en uninstall.
   - apiGroups: [""]
     resources: ["configmaps", "services"]
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
