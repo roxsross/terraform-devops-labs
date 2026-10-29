@@ -1,0 +1,128 @@
+# Permisos del pipeline CI/CD para desplegar con Helm la app del lab 04 en dev y prod.
+#
+# El runner corre DENTRO del cluster: helm y kubectl usan el token de la ServiceAccount
+# arc-deployer (montado en el pod de runner) en lugar de un kubeconfig guardado
+# en los secrets de GitHub.
+#
+# Lo aplica una persona, una vez, con permisos de admin del cluster:
+#   kubectl apply -f rbac-deployer.yaml
+# Requisito: existe el namespace arc-runners (paso 4 del README).
+#
+# Crea los namespaces k8s-lab-dev y k8s-lab-prod porque son objetos de todo el
+# cluster: el pipeline no puede crearlos (por eso el deploy no usa
+# --create-namespace). El namespace k8s-lab del lab 04 no se toca.
+#
+# Ojo: Helm necesita leer y escribir Secrets, así que esta ServiceAccount puede
+# leer TODOS los Secrets de k8s-lab-dev y k8s-lab-prod (por ejemplo ghcr-pull).
+#
+# Mejora opcional: dos scale sets con dos ServiceAccounts (una por ambiente)
+# para que un job de dev no pueda tocar prod.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: k8s-lab-dev
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: k8s-lab-prod
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: arc-deployer
+  namespace: arc-runners
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: arc-deployer
+  namespace: k8s-lab-dev
+rules:
+  # Helm guarda cada release como un Secret (sh.helm.release.v1.app.vN)
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  # Objetos del chart: ConfigMap, Services y Deployments (web y valkey).
+  # delete: helm borra lo que sale del chart en un upgrade y en uninstall.
+  - apiGroups: [""]
+    resources: ["configmaps", "services"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  # helm --wait y diagnóstico: ReplicaSets, Pods, logs y eventos (solo lectura)
+  - apiGroups: ["apps"]
+    resources: ["replicasets"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["pods", "pods/log", "events"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["events.k8s.io"]
+    resources: ["events"]
+    verbs: ["get", "list", "watch"]
+  # Gateway y HTTPRoute del chart
+  - apiGroups: ["gateway.networking.k8s.io"]
+    resources: ["gateways", "httproutes"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: arc-deployer
+  namespace: k8s-lab-dev
+subjects:
+  - kind: ServiceAccount
+    name: arc-deployer
+    namespace: arc-runners
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: arc-deployer
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: arc-deployer
+  namespace: k8s-lab-prod
+rules:
+  # Helm guarda cada release como un Secret (sh.helm.release.v1.app.vN)
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  # Objetos del chart: ConfigMap, Services y Deployments (web y valkey).
+  # delete: helm borra lo que sale del chart en un upgrade y en uninstall.
+  - apiGroups: [""]
+    resources: ["configmaps", "services"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  # helm --wait y diagnóstico: ReplicaSets, Pods, logs y eventos (solo lectura)
+  - apiGroups: ["apps"]
+    resources: ["replicasets"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["pods", "pods/log", "events"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["events.k8s.io"]
+    resources: ["events"]
+    verbs: ["get", "list", "watch"]
+  # Gateway y HTTPRoute del chart
+  - apiGroups: ["gateway.networking.k8s.io"]
+    resources: ["gateways", "httproutes"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: arc-deployer
+  namespace: k8s-lab-prod
+subjects:
+  - kind: ServiceAccount
+    name: arc-deployer
+    namespace: arc-runners
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: arc-deployer

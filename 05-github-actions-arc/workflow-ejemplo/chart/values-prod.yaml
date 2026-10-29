@@ -1,0 +1,16 @@
+# Ambiente prod (namespace k8s-lab-prod): http://web.localhost:8082
+replicaCount: 2
+
+config:
+  MENSAJE: "Mi app en Kubernetes (prod)"
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 64Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi
+
+gateway:
+  port: 8082

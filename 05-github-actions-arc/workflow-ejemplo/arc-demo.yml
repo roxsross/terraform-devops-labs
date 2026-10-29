@@ -26,7 +26,7 @@ jobs:
     runs-on: arc-runner-set
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Docker disponible (cliente y daemon dind)
         run: docker version
       - name: Construir la imagen de prueba

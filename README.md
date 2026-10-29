@@ -29,7 +29,7 @@ Seguí este README de arriba hacia abajo: primero prerrequisitos, después los l
 | [02 — MiniStack](02-terraform-aws-ministack/README.md) | API Gateway HTTP API + Lambda (Python) + DynamoDB + IAM | Leer una arquitectura AWS en Terraform, dependencias, permisos, probar una API | Tu máquina (emulador MiniStack en Docker) | Ninguno | Local, AWS emulado |
 | [03 — AWS real](03-terraform-aws-real/README.md) | La misma API del lab 02 | Credenciales, región, roles IAM, limpieza verificada en la nube | Cuenta AWS de práctica | Puede generar costos | **Opcional**, usa AWS real (solo en cuenta autorizada) |
 | [04 — Kubernetes](04-kubernetes/README.md) | App web Node + Valkey publicada con Gateway API (Envoy Gateway) | Objetos de Kubernetes, `kubectl`, Helm, Gateway y HTTPRoute | Tu máquina (Kubernetes de Docker Desktop) | Ninguno | Local, sin Terraform |
-| [05 — GitHub Actions ARC](05-github-actions-arc/README.md) | Controller de ARC + runner scale set con Docker-in-Docker | Runners self-hosted efímeros en Kubernetes, charts OCI, secrets, `runs-on` | Tu máquina (Kubernetes de Docker Desktop) + repo GitHub propio | Ninguno | Local; requiere repo privado propio y PAT |
+| [05 — GitHub Actions ARC](05-github-actions-arc/README.md) | Controller de ARC + runner scale set con Docker-in-Docker; pipeline CI/CD de la app del 04 a dev y prod con Helm | Runners self-hosted efímeros en Kubernetes, charts OCI, secrets, `runs-on`, RBAC, environments | Tu máquina (Kubernetes de Docker Desktop) + repo GitHub propio | Ninguno | Local; requiere repo privado propio y PAT |
 
 ```mermaid
 flowchart LR
@@ -111,9 +111,12 @@ terraform-devops-labs/
 └── 05-github-actions-arc/
     ├── README.md                               # Paso a paso del lab 05 (ARC con Helm)
     ├── values.yaml                             # Values del runner scale set (dind, min/max runners), sin secretos
+    ├── rbac-deployer.yaml                      # Namespaces dev/prod + ServiceAccount y Roles para el deploy
     └── workflow-ejemplo/
         ├── arc-demo.yml                        # Workflow de prueba: runs-on: arc-runner-set
-        └── Dockerfile                          # Imagen mínima que construye el workflow
+        ├── Dockerfile                          # Imagen mínima que construye el workflow
+        ├── ci-cd.yml                           # Pipeline init → test → build → deploy-dev → deploy-prod
+        └── chart/                              # Chart de Helm de la app del lab 04 (values-dev / values-prod)
 ```
 
 Los archivos que creás vos (`terraform.tfvars`, `aws-credentials.sh`) y los que genera Terraform (`.terraform/`, `terraform.tfstate*`, `lambda.zip`) están ignorados por Git.
@@ -204,6 +207,7 @@ Regla de oro: **leé el plan antes de cada `apply`**. Si propone destruir algo q
 - [ ] Scale set instalado con `containerMode.type=dind` y listener `Running` en `arc-systems`
 - [ ] `arc-runner-set` visible en Settings › Actions › Runners de tu repo
 - [ ] Workflow `arc-demo.yml` en verde, incluido el `docker build`
+- [ ] (Opcional) [Pipeline completo](05-github-actions-arc/README.md#pipeline-completo-de-github-al-cluster): `ci-cd.yml` despliega en `k8s-lab-dev` y, con aprobación, en `k8s-lab-prod`
 - [ ] [Limpieza](05-github-actions-arc/README.md#limpieza): scale set, controller, namespaces y PAT revocado
 
 ## 7. Limpieza con `cleanup.sh`

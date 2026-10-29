@@ -1,0 +1,13 @@
+# ConfigMap: la configuración de la app (04-kubernetes/k8s/01-configmap.yaml).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: web-config
+  labels:
+    {{- include "k8s-app.labels" . | nindent 4 }}
+data:
+  {{- range $k, $v := .Values.config }}
+  {{ $k }}: {{ $v | quote }}
+  {{- end }}
+  VALKEY_HOST: "valkey"
+  VALKEY_PORT: "6379"

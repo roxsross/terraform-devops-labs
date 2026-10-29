@@ -1,0 +1,6 @@
+apiVersion: v2
+name: k8s-app
+description: App web del lab 04 (Node + Valkey + Gateway API) empaquetada como chart de Helm
+type: application
+version: 0.1.0
+appVersion: "1.0"

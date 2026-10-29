@@ -1,0 +1,242 @@
+# Pipeline CI/CD de la app del lab 04 en el runner scale set de ARC.
+# Copialo a .github/workflows/ci-cd.yml en el repo de la app (README del lab 05,
+# sección "Pipeline completo: de GitHub al cluster").
+#
+# Etapas: init → test → build → deploy-dev → deploy-prod
+#   pull_request a main  → init + test (sin build ni deploy)
+#   push a main          → todo; deploy-prod espera la aprobación del environment "prod"
+#   tag v*.*.*           → todo (camino para prod si tu plan no tiene required reviewers)
+#   workflow_dispatch    → todo, a mano desde la pestaña Actions
+#
+# Requisitos en el cluster (los arma una persona, una vez):
+#   - scale set con containerMode.type=dind y template.spec.serviceAccountName=arc-deployer
+#   - rbac-deployer.yaml aplicado (namespaces k8s-lab-dev / k8s-lab-prod + RBAC)
+#   - Envoy Gateway y la GatewayClass "envoy" del lab 04
+# Credenciales: GHCR con GITHUB_TOKEN; el cluster con la ServiceAccount del pod.
+# No hay kubeconfig ni tokens propios en los secrets del repo.
+name: CI/CD app
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*.*.*"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  init:
+    runs-on: arc-runner-set
+    outputs:
+      image: ${{ steps.meta.outputs.image }}
+      tag: ${{ steps.meta.outputs.tag }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Metadatos de la imagen
+        id: meta
+        run: |
+          IMAGE="ghcr.io/${GITHUB_REPOSITORY,,}"   # GHCR exige minúsculas
+          TAG="${GITHUB_SHA::7}"                    # short sha: un tag por commit
+          echo "image=${IMAGE}" >> "$GITHUB_OUTPUT"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "Imagen: ${IMAGE}:${TAG}"
+
+      - name: Node.js con caché de npm
+        uses: actions/setup-node@v7
+        with:
+          node-version: "24"            # la misma versión que app/Dockerfile (node:24-alpine)
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - name: Instalar dependencias
+        working-directory: app
+        run: npm ci
+
+  test:
+    needs: init
+    runs-on: arc-runner-set
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Node.js con caché de npm
+        uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - name: Tests de la app
+        working-directory: app
+        run: |
+          npm ci
+          npm test --if-present
+
+      - name: Instalar Helm
+        uses: azure/setup-helm@v5
+
+      - name: Validar el chart (sin cluster)
+        env:
+          IMAGE: ${{ needs.init.outputs.image }}
+          TAG: ${{ needs.init.outputs.tag }}
+        run: |
+          for ENV in dev prod; do
+            helm lint ./chart -f "chart/values-${ENV}.yaml" \
+              --set image.repository="${IMAGE}" --set image.tag="${TAG}"
+            helm template app ./chart -n "k8s-lab-${ENV}" -f "chart/values-${ENV}.yaml" \
+              --set image.repository="${IMAGE}" --set image.tag="${TAG}" > /dev/null
+          done
+          echo "Chart OK para dev y prod"
+
+  build:
+    needs: [init, test]
+    if: github.event_name != 'pull_request'
+    runs-on: arc-runner-set
+    permissions:
+      contents: read
+      packages: write
+    env:
+      IMAGE: ${{ needs.init.outputs.image }}
+      TAG: ${{ needs.init.outputs.tag }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Docker disponible (dind)
+        run: docker version
+
+      - name: Login a GHCR con GITHUB_TOKEN
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Build (una sola vez; la misma imagen va a dev y a prod)
+        run: |
+          docker build \
+            --label "org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}" \
+            --label "org.opencontainers.image.revision=${GITHUB_SHA}" \
+            -t "${IMAGE}:${TAG}" \
+            app
+
+      - name: Push
+        run: docker push "${IMAGE}:${TAG}"
+
+      - name: Logout
+        if: always()
+        run: docker logout ghcr.io
+
+  deploy-dev:
+    needs: [init, build]
+    runs-on: arc-runner-set
+    environment:
+      name: dev
+      url: http://web.localhost:8081
+    concurrency:
+      group: deploy-dev
+      cancel-in-progress: false
+    env:
+      NAMESPACE: k8s-lab-dev
+      VALUES: chart/values-dev.yaml
+      IMAGE: ${{ needs.init.outputs.image }}
+      TAG: ${{ needs.init.outputs.tag }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Instalar kubectl
+        uses: azure/setup-kubectl@v5
+
+      - name: Instalar Helm
+        uses: azure/setup-helm@v5
+
+      - name: Verificar acceso al cluster (ServiceAccount del pod)
+        run: |
+          kubectl version
+          kubectl auth can-i create secrets -n "$NAMESPACE"
+          kubectl auth can-i patch deployments -n "$NAMESPACE"
+
+      - name: Deploy con Helm (espera a que los pods estén listos)
+        run: |
+          helm upgrade --install app ./chart \
+            -n "$NAMESPACE" \
+            -f "$VALUES" \
+            --set image.repository="${IMAGE}" \
+            --set image.tag="${TAG}" \
+            --wait --timeout 5m
+          helm history app -n "$NAMESPACE" --max 5
+          kubectl get pods -n "$NAMESPACE" -l app=web -o wide
+
+      - name: Smoke test (Service interno, desde el pod de runner)
+        run: |
+          URL="http://web.${NAMESPACE}.svc.cluster.local"
+          for _ in 1 2 3 4 5; do
+            if curl -fsS "${URL}/health"; then
+              echo
+              curl -fsS "${URL}/"
+              echo
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "La app no respondió en ${URL}/health"
+          exit 1
+
+  deploy-prod:
+    needs: [init, deploy-dev]
+    if: github.event_name != 'pull_request'
+    runs-on: arc-runner-set
+    environment:
+      name: prod
+      url: http://web.localhost:8082
+    concurrency:
+      group: deploy-prod
+      cancel-in-progress: false
+    env:
+      NAMESPACE: k8s-lab-prod
+      VALUES: chart/values-prod.yaml
+      IMAGE: ${{ needs.init.outputs.image }}
+      TAG: ${{ needs.init.outputs.tag }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Instalar kubectl
+        uses: azure/setup-kubectl@v5
+
+      - name: Instalar Helm
+        uses: azure/setup-helm@v5
+
+      - name: Verificar acceso al cluster (ServiceAccount del pod)
+        run: |
+          kubectl version
+          kubectl auth can-i create secrets -n "$NAMESPACE"
+          kubectl auth can-i patch deployments -n "$NAMESPACE"
+
+      - name: Deploy con Helm (la misma imagen que dev)
+        run: |
+          helm upgrade --install app ./chart \
+            -n "$NAMESPACE" \
+            -f "$VALUES" \
+            --set image.repository="${IMAGE}" \
+            --set image.tag="${TAG}" \
+            --wait --timeout 5m
+          helm history app -n "$NAMESPACE" --max 5
+          kubectl get pods -n "$NAMESPACE" -l app=web -o wide
+
+      - name: Smoke test (Service interno, desde el pod de runner)
+        run: |
+          URL="http://web.${NAMESPACE}.svc.cluster.local"
+          for _ in 1 2 3 4 5; do
+            if curl -fsS "${URL}/health"; then
+              echo
+              curl -fsS "${URL}/"
+              echo
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "La app no respondió en ${URL}/health"
+          exit 1

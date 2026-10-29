@@ -1,0 +1,39 @@
+# Values base del chart. Salen de los manifiestos de 04-kubernetes/k8s.
+# Cada ambiente pisa lo que cambia con values-dev.yaml / values-prod.yaml,
+# y el pipeline pasa image.tag con --set.
+
+replicaCount: 3
+
+image:
+  # ghcr.io/<owner>/<repo> en minúsculas. El pipeline lo pasa con --set.
+  repository: ghcr.io/owner/repo
+  # Tag por commit (short sha). El pipeline lo pasa con --set image.tag=<sha>.
+  tag: ""
+  pullPolicy: IfNotPresent
+
+# Para un package privado de GHCR: [{ name: ghcr-pull }] (ver README del lab 05)
+imagePullSecrets: []
+
+# Se vuelve el ConfigMap web-config (variables de entorno de la app)
+config:
+  MENSAJE: "Mi app en Kubernetes"
+  APP_VERSION: "1.0"
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 32Mi
+  limits:
+    cpu: 200m
+    memory: 128Mi
+
+valkey:
+  image: valkey/valkey:9-alpine
+
+gateway:
+  enabled: true
+  className: envoy        # la GatewayClass del lab 04
+  # Puerto en localhost. 8080 es el del lab 04: cada ambiente usa otro
+  # para que los LoadBalancer de Docker Desktop no choquen.
+  port: 8080
+  hostname: web.localhost

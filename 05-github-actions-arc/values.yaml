@@ -32,6 +32,15 @@ maxRunners: 3
 containerMode:
   type: "dind"
 
+# Pipeline CI/CD (sección "Pipeline completo" del README): los pods de runner
+# usan la ServiceAccount arc-deployer de rbac-deployer.yaml para hacer
+# helm upgrade --install en k8s-lab-dev y k8s-lab-prod, sin kubeconfig. Descomentalo SOLO después de
+# aplicar rbac-deployer.yaml: si la ServiceAccount no existe, los pods de
+# runner no se crean. El chart combina este template con el de dind.
+# template:
+#   spec:
+#     serviceAccountName: arc-deployer
+
 # Por defecto el scale set se llama igual que el release de Helm
 # (arc-runner-set) y ese es el valor de runs-on en los workflows.
 # runnerScaleSetName: "mi-scale-set"

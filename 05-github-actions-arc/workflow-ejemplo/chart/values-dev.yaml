@@ -1,0 +1,8 @@
+# Ambiente dev (namespace k8s-lab-dev): http://web.localhost:8081
+replicaCount: 1
+
+config:
+  MENSAJE: "Mi app en Kubernetes (dev)"
+
+gateway:
+  port: 8081
