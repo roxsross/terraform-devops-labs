@@ -1,8 +1,9 @@
 # Workflow de prueba para el runner scale set de ARC.
-# Copialo a .github/workflows/arc-demo.yml en TU repo (privado) y correlo
-# desde Actions › ARC demo › Run workflow.
+# Copialo a .github/workflows/arc-demo.yml en TU repo (privado) y el Dockerfile
+# de esta carpeta a arc-demo/Dockerfile. Corrélo desde Actions › ARC demo › Run workflow.
 # runs-on tiene que coincidir con el nombre del scale set
 # (el nombre del release de Helm, salvo que definas runnerScaleSetName).
+# El job "docker" necesita el scale set instalado con containerMode.type=dind.
 name: ARC demo
 
 on:
@@ -20,3 +21,15 @@ jobs:
         run: uname -a
       - name: Datos del run
         run: echo "Repo ${{ github.repository }}, run ${{ github.run_id }}, runner ${{ runner.name }}"
+
+  docker:
+    runs-on: arc-runner-set
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Docker disponible (cliente y daemon dind)
+        run: docker version
+      - name: Construir la imagen de prueba
+        run: docker build -t arc-demo:${{ github.run_id }} arc-demo
+      - name: Correr la imagen
+        run: docker run --rm arc-demo:${{ github.run_id }}

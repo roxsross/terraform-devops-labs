@@ -24,6 +24,14 @@ githubConfigSecret: pre-defined-secret
 minRunners: 0
 maxRunners: 3
 
+# Docker-in-Docker: permite `docker build` / `docker run` en los jobs.
+# El chart agrega al pod de runner un sidecar `dind` (imagen docker:dind,
+# privileged: true) que levanta dockerd, y le pone al contenedor `runner`
+# DOCKER_HOST=unix:///var/run/docker.sock sobre un volumen compartido.
+# Privileged = riesgo: aceptable en un cluster local propio, no en uno compartido.
+containerMode:
+  type: "dind"
+
 # Por defecto el scale set se llama igual que el release de Helm
 # (arc-runner-set) y ese es el valor de runs-on en los workflows.
 # runnerScaleSetName: "mi-scale-set"
