@@ -268,6 +268,8 @@ Antes de cada destroy verifica el prerrequisito: `docker info` (01), `/_ministac
 | La API responde `500` | 02, 03 | Permisos de DynamoDB del rol o error en la Lambda | Revisá el rol y los logs (`aws logs tail /aws/lambda/<project_name>-api`; en el 02 agregá `--endpoint-url=http://localhost:4566`) |
 | Los recursos "no aparecen" en AWS | 03 | Región distinta entre `aws_region` y `AWS_REGION` | Usá la misma región en todos lados |
 | `cleanup.sh` termina con "conservado (no se pudo destruir: falta prerrequisito)" | Todos | Docker, MiniStack o credenciales no disponibles | Resolvé el prerrequisito y volvé a correrlo |
+| Listener de ARC en `CrashLoopBackOff` | 05 | PAT inválido o vencido, o `githubConfigUrl` mal escrita | Ver [lab 05](05-github-actions-arc/README.md#problemas-comunes) |
+| Job en *Waiting for a runner* | 05 | `runs-on` distinto del nombre del scale set (`arc-runner-set`) | Ver [lab 05](05-github-actions-arc/README.md#problemas-comunes) |
 | `cleanup.sh` termina con "conservado (state ilegible)" | Todos | Falta Terraform, o no pudo leer el state ni ejecutar `terraform init` (sin red) | Leé el motivo que imprime, corré `terraform -chdir=<lab> init` y volvé a correrlo |
 
 ## 10. Material teórico
