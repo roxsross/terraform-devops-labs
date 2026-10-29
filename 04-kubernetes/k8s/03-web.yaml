@@ -1,0 +1,54 @@
+# La app web: 3 copias de la imagen k8s-app:1.0.
+# Lee la config del ConfigMap y encuentra a Valkey por DNS.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+  namespace: clase-k8s
+spec:
+  replicas: 3                       # estado deseado: 3 copias
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      containers:
+        - name: web
+          # Imagen construida en tu Mac con "docker build". Docker Desktop la comparte con el clúster.
+          # Como el tag no es "latest", Kubernetes usa la imagen local y no la busca en internet.
+          image: k8s-app:1.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3000
+          envFrom:                      # todas las claves del ConfigMap como variables
+            - configMapRef:
+                name: web-config
+          readinessProbe:               # el Service solo le manda tráfico cuando /health responde
+            httpGet:
+              path: /health
+              port: 3000
+          resources:
+            requests:                   # lo mínimo que se le reserva
+              cpu: 50m
+              memory: 32Mi
+            limits:                     # lo máximo que puede usar
+              cpu: 200m
+              memory: 128Mi
+---
+# Service: un nombre y una IP fijos para los 3 Pods, que cambian de IP cada vez que se reemplazan.
+# Es interno (ClusterIP): desde afuera se llega por el Gateway.
+apiVersion: v1
+kind: Service
+metadata:
+  name: web
+  namespace: clase-k8s
+spec:
+  type: ClusterIP
+  selector:
+    app: web
+  ports:
+    - port: 80             # puerto del Service
+      targetPort: 3000     # puerto del contenedor

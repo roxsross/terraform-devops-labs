@@ -1,0 +1,10 @@
+# GatewayClass: el "tipo" de Gateway. Dice qué controlador atiende a los Gateways de esta clase.
+#
+# controllerName es fijo: es el nombre con el que se presenta Envoy Gateway.
+# Es un objeto de todo el clúster (no tiene namespace).
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: envoy
+spec:
+  controllerName: gateway.envoyproxy.io/gatewayclass-controller

@@ -1,0 +1,21 @@
+# Gateway: la "puerta de entrada" del clúster.
+#
+# Cuando lo creás, Envoy Gateway levanta para este Gateway un Deployment de Envoy (el proxy)
+# y un Service tipo LoadBalancer en el namespace envoy-gateway-system.
+# Docker Desktop publica ese LoadBalancer en localhost:8080.
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: web-gateway
+  namespace: clase-k8s
+spec:
+  gatewayClassName: envoy      # la GatewayClass de 04-gatewayclass.yaml
+  listeners:
+    - name: http
+      protocol: HTTP
+      # El puerto donde escucha desde afuera: http://web.localhost:8080
+      # Usamos 8080 y no 80 porque el 80 suele estar ocupado en la Mac.
+      port: 8080
+      allowedRoutes:
+        namespaces:
+          from: Same           # solo acepta HTTPRoute de clase-k8s

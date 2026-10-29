@@ -1,0 +1,36 @@
+# Valkey (compatible con Redis): la base de datos donde la app cuenta las visitas.
+# Sin contraseña y sin disco: guarda los datos en memoria.
+# Si el Pod se reemplaza, el contador vuelve a 0. Solo es accesible desde adentro del clúster.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: valkey
+  namespace: clase-k8s
+spec:
+  replicas: 1                   # una sola copia: es la base de datos
+  selector:
+    matchLabels:
+      app: valkey               # así reconoce a "sus" Pods
+  template:                     # el molde de cada Pod
+    metadata:
+      labels:
+        app: valkey             # tiene que coincidir con el selector
+    spec:
+      containers:
+        - name: valkey
+          image: valkey/valkey:9-alpine
+          ports:
+            - containerPort: 6379
+---
+# Service: le da a Valkey un nombre fijo dentro del clúster: "valkey".
+apiVersion: v1
+kind: Service
+metadata:
+  name: valkey
+  namespace: clase-k8s
+spec:
+  selector:
+    app: valkey
+  ports:
+    - port: 6379
+      targetPort: 6379

@@ -1,0 +1,8 @@
+{
+  "name": "k8s-app",
+  "version": "1.0.0",
+  "description": "App de práctica para la clase Kubernetes desde cero",
+  "main": "server.js",
+  "scripts": { "start": "node server.js" },
+  "license": "MIT"
+}

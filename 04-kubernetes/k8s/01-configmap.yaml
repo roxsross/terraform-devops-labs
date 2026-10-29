@@ -1,0 +1,12 @@
+# ConfigMap: la configuración de la app, afuera de la imagen.
+# Cada clave se vuelve una variable de entorno (ver envFrom en 03-web.yaml).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: web-config
+  namespace: clase-k8s
+data:
+  MENSAJE: "Mi app en Kubernetes"
+  APP_VERSION: "1.0"
+  VALKEY_HOST: "valkey"      # el nombre del Service de Valkey: DNS interno del clúster
+  VALKEY_PORT: "6379"

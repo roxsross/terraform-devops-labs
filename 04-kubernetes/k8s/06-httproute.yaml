@@ -1,0 +1,22 @@
+# HTTPRoute: la regla de tránsito. "Lo que llegue al Gateway con este host, mandalo al Service web".
+#
+# web.localhost: los navegadores (y curl) resuelven cualquier *.localhost a 127.0.0.1
+# sin consultar ningún DNS. Así tenemos un host sin tocar /etc/hosts ni comprar un dominio.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: web
+  namespace: clase-k8s
+spec:
+  parentRefs:
+    - name: web-gateway        # el Gateway de 05-gateway.yaml
+  hostnames:
+    - "web.localhost"
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /           # todas las rutas
+      backendRefs:
+        - name: web            # el Service de 03-web.yaml
+          port: 80

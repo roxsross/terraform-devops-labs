@@ -1,0 +1,6 @@
+# Namespace: una "carpeta" dentro del clúster.
+# Todo el proyecto vive acá. Si borrás el namespace, se borra todo lo de adentro.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: clase-k8s
