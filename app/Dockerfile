@@ -1,4 +1,3 @@
-# Imagen liviana y sin root
 FROM node:24-alpine
 WORKDIR /app
 ENV NODE_ENV=production
