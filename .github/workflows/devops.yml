@@ -1,0 +1,15 @@
+name: CI DEVOPS EDIT
+
+on:
+    push: 
+        branches: [ga-develop]
+    pull_request:
+    workflow_dispath:
+
+jobs:
+    test:
+        name: test
+        runs-on: ubuntu-26.04
+        steps:
+            - name: listar archivos del repositorio
+              run: ls -la
