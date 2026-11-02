@@ -30,8 +30,8 @@ jobs:
         name: build
         runs-on: ubuntu-26.04
         permissions:
-        contents: read
-        packages: write 
+            contents: read
+            packages: write 
         needs: test
         defaults:
             run:
