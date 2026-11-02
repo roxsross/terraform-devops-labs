@@ -5,7 +5,9 @@ on:
         branches: [ga-develop]
     pull_request:
     workflow_dispatch:
-
+env:
+    APP_VERSION: v1
+    REPOSITORY: ghcr.io/roxsross/terraform-devops-labs
 jobs:
     test:
         name: test
@@ -41,11 +43,6 @@ jobs:
               uses: actions/checkout@v7
             - name: listar
               run: ls
-            - name: Nombre de la imagen
-              id: imagen
-              run: |
-                IMG=ghcr.io/${GITHUB_REPOSITORY,,}
-                echo "nombre=$IMG:sha-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
             - name: preparar instalacion docker
               uses: docker/setup-qemu-action@v4
             - name: Set up Docker Buildx
@@ -62,6 +59,4 @@ jobs:
                 context: ./app
                 platforms: linux/amd64,linux/arm64
                 push: true
-                tags: ghcr.io/roxsross/terraform-devops-labs:1.0.0
-            - name: Resumen
-              run: echo " Imagen publicada"
+                tags: $REPOSITORY:$APP_VERSION
