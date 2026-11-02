@@ -10,7 +10,7 @@ jobs:
     test:
         name: test
         runs-on: ubuntu-26.04
-        default:
+        defaults:
             run:
                 working-directory: app
         steps:
