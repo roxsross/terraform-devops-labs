@@ -28,7 +28,7 @@ jobs:
               run: npm test
     build:
         name: build
-         defaults:
+        defaults:
             run:
                 working-directory: app       
         steps:
