@@ -10,8 +10,19 @@ jobs:
     test:
         name: test
         runs-on: ubuntu-26.04
+        default:
+            run:
+                working-directory: app
         steps:
             - name: Descarga del codigo
               uses: actions/checkout@v7
             - name: listar archivos del repositorio
               run: ls -la
+            - name: Instalar Node.js
+              uses: actions/setup-node@v7
+              with:
+                node-version: '24'
+            - name: descarga de librerias de aplicacion
+              run: npm install
+            - name: Ejecutar los test
+              run: npm test
