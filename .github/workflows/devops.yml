@@ -43,7 +43,7 @@ jobs:
               id: imagen
               run: |
                 IMG=ghcr.io/${GITHUB_REPOSITORY,,}
-                echo "nombre=$IMG:${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+                echo "nombre=$IMG:sha-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
             - name: preparar instalacion docker
               uses: docker/setup-qemu-action@v4
             - name: Set up Docker Buildx
