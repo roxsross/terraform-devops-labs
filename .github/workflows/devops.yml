@@ -26,3 +26,13 @@ jobs:
               run: npm install
             - name: Ejecutar los test
               run: npm test
+    build:
+        name: build
+         defaults:
+            run:
+                working-directory: app       
+        steps:
+            - name: Descarga del codigo
+              uses: actions/checkout@v7
+            - name: listar archivos del repositorio
+              run: ls -la
