@@ -11,5 +11,7 @@ jobs:
         name: test
         runs-on: ubuntu-26.04
         steps:
+            - name: Descarga del codigo
+              uses: actions/checkout@v7
             - name: listar archivos del repositorio
               run: ls -la
