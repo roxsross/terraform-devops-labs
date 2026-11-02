@@ -1,3 +1,0 @@
-container_name = "web-terraform"
-image_name     = "nginx:alpine"
-external_port  = 8080

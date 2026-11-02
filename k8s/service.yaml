@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: tareas
+  namespace: clase-cicd
+spec:
+  selector:
+    app: tareas
+  ports:
+    - port: 80
+      targetPort: 3000

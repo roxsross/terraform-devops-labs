@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>API de tareas</title>
+  <style>
+    :root { --bg:#0f172a; --card:#1e293b; --txt:#f8fafc; --mut:#94a3b8; --acc:#60a5fa; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family:system-ui,sans-serif; background:var(--bg); color:var(--txt); }
+    main { max-width:640px; margin:0 auto; padding:2rem 1rem; }
+    h1 { margin:0 0 .3rem; font-size:2rem; }
+    .info { display:flex; gap:.6rem; flex-wrap:wrap; margin:1rem 0 1.5rem; }
+    .chip { background:var(--card); border-radius:999px; padding:.35rem .8rem; font-size:.85rem; color:var(--mut); }
+    .chip b { color:var(--acc); }
+    form { display:flex; gap:.5rem; margin-bottom:1rem; }
+    input[type=text] { flex:1; padding:.7rem; border-radius:8px; border:1px solid #334155; background:var(--card); color:var(--txt); }
+    button { padding:.7rem 1rem; border:0; border-radius:8px; background:var(--acc); color:#0f172a; font-weight:700; cursor:pointer; }
+    ul { list-style:none; padding:0; margin:0; }
+    li { display:flex; align-items:center; gap:.7rem; background:var(--card); padding:.7rem .9rem; border-radius:8px; margin-bottom:.5rem; }
+    li span { flex:1; }
+    li.hecha span { text-decoration:line-through; color:var(--mut); }
+    li button { background:transparent; color:var(--mut); padding:.2rem .5rem; }
+  </style>
+</head>
+<body>
+<main>
+  <h1 id="mensaje">API de tareas</h1>
+  <div class="info">
+    <span class="chip">versión <b id="version">-</b></span>
+    <span class="chip">pod <b id="pod">-</b></span>
+  </div>
+  <form id="form">
+    <input id="titulo" type="text" maxlength="100" placeholder="Nueva tarea" required>
+    <button>Agregar</button>
+  </form>
+  <ul id="lista"></ul>
+</main>
+<script>
+  const $ = (id) => document.getElementById(id);
+  const json = { "Content-Type": "application/json" };
+  async function cargarInfo() {
+    const i = await (await fetch("/info")).json();
+    $("mensaje").textContent = i.mensaje; $("version").textContent = i.version; $("pod").textContent = i.pod;
+  }
+  async function cargarTareas() {
+    const tareas = await (await fetch("/api/tareas")).json();
+    $("lista").replaceChildren(...tareas.map((t) => {
+      const li = document.createElement("li"); if (t.completada) li.className = "hecha";
+      const chk = document.createElement("input"); chk.type = "checkbox"; chk.checked = t.completada;
+      chk.onchange = () => fetch("/api/tareas/" + t.id, { method: "PATCH", headers: json, body: JSON.stringify({ completada: chk.checked }) }).then(cargarTareas);
+      const span = document.createElement("span"); span.textContent = t.titulo;
+      const del = document.createElement("button"); del.textContent = "✕"; del.title = "Borrar";
+      del.onclick = () => fetch("/api/tareas/" + t.id, { method: "DELETE" }).then(cargarTareas);
+      li.append(chk, span, del); return li;
+    }));
+  }
+  $("form").onsubmit = async (e) => {
+    e.preventDefault();
+    await fetch("/api/tareas", { method: "POST", headers: json, body: JSON.stringify({ titulo: $("titulo").value }) });
+    $("titulo").value = ""; cargarTareas();
+  };
+  cargarInfo(); cargarTareas();
+</script>
+</body>
+</html>

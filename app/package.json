@@ -1,0 +1,13 @@
+{
+  "name": "api-tareas",
+  "version": "1.0.0",
+  "description": "API de tareas para la clase de CI/CD con GitHub Actions y ARC",
+  "main": "src/server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test"
+  },
+  "engines": { "node": ">=22" },
+  "license": "MIT"
+}

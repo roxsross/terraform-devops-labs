@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tareas
+  namespace: clase-cicd
+  labels:
+    app: tareas
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: tareas
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0        
+      maxSurge: 1              
+  template:
+    metadata:
+      labels:
+        app: tareas
+    spec:
+      containers:
+        - name: tareas
+          image: IMAGEN_APP
+          ports:
+            - containerPort: 3000
+          env:
+            - name: MENSAJE
+              value: "Desplegado por GitHub Actions"
+          readinessProbe:     
+            httpGet:
+              path: /health
+              port: 3000
+            periodSeconds: 5
+          livenessProbe:       
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 5
+          resources:
+            requests:
+              cpu: 50m
+              memory: 48Mi
+            limits:
+              cpu: 250m
+              memory: 128Mi
