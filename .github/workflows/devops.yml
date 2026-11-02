@@ -39,6 +39,8 @@ jobs:
         steps:
             - name: Descarga del codigo
               uses: actions/checkout@v7
+            - name: listar
+              run: ls
             - name: Nombre de la imagen
               id: imagen
               run: |
