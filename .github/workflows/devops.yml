@@ -7,7 +7,6 @@ on:
     workflow_dispatch:
 env:
     APP_VERSION: v1
-    REPOSITORY: "ghcr.io/roxsross/terraform-devops-labs"
 jobs:
     test:
         name: test
@@ -59,4 +58,4 @@ jobs:
                 context: ./app
                 platforms: linux/amd64,linux/arm64
                 push: true
-                tags: ${REPOSITORY}:${APP_VERSION}
+                tags: ghcr.io/roxsross/terraform-devops-labs:1.0.0
