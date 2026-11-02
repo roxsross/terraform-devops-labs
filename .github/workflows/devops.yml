@@ -59,3 +59,16 @@ jobs:
                 platforms: linux/amd64,linux/arm64
                 push: true
                 tags: ghcr.io/roxsross/terraform-devops-labs:1.0.0
+
+    deploy:
+        name: deploy
+        runs-on: arc-runner-set #runner kubernetes local
+        needs: build
+        defaults:
+            run:
+                working-directory: k8s       
+        steps:
+            - name: Descarga del codigo
+              uses: actions/checkout@v7
+            - name: listar
+              run: ls
