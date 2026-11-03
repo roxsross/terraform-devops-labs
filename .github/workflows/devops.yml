@@ -53,7 +53,7 @@ jobs:
                 echo "image=${IMAGEN}" >> "$GITHUB_OUTPUT"
 
                 echo "Version : ${VERSION}"
-                echo "Imagen: ${IMAGEN}""
+                echo "Imagen: ${IMAGEN}"
 
             - name: preparar instalacion docker
               uses: docker/setup-qemu-action@v4
