@@ -59,7 +59,7 @@ jobs:
     deploy:
         name: deploy
         runs-on: arc-runner-set #runner kubernetes local
-        #needs: build
+        needs: build
         defaults:
             run:
                 working-directory: k8s       
