@@ -81,5 +81,5 @@ jobs:
                 IMAGEN="ghcr.io/roxsross/terraform-devops-labs:1.0.0"
                 echo $IMAGEN
                 echo "Desplegando la aplicacion en kubernetes"
-                sed "s|IMAGEN_APP|${IMAGEN}|" k8s/deployment.yaml
-                cat k8s/deployment.yaml
+                sed "s|IMAGEN_APP|${IMAGEN}|" deployment.yaml
+                cat deployment.yaml
