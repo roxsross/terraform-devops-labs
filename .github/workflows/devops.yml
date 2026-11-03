@@ -6,7 +6,8 @@ on:
     pull_request:
     workflow_dispatch:
 env:
-    APP_VERSION: v1
+    REGISTRY: ghcr.io
+    IMAGE_NAME: roxsross/terraform-devops-labs
 jobs:
     test:
         name: test
@@ -25,6 +26,7 @@ jobs:
               run: npm install
             - name: Ejecutar los test
               run: npm test
+
     build:
         name: build
         runs-on: ubuntu-26.04
@@ -34,10 +36,25 @@ jobs:
         needs: test
         defaults:
             run:
-                working-directory: app       
+                working-directory: app    
+        outputs:
+          image: ${{ steps.version.outputs.image }}
+          version: ${{ steps.version.outputs.version }}           
         steps:
             - name: Descarga del codigo
               uses: actions/checkout@v7
+            - name: Obtener version de commit para la imagen
+              id: version
+              run: |
+                VERSION="${GITHUB_SHA::7}"
+                IMAGEN="${REGISTRY}/${IMAGE_NAME}:$VERSION"
+
+                echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+                echo "image=${IMAGEN}" >> "$GITHUB_OUTPUT"
+
+                echo "Version : ${VERSION}"
+                echo "Imagen: ${IMAGEN}""
+
             - name: preparar instalacion docker
               uses: docker/setup-qemu-action@v4
             - name: Set up Docker Buildx
@@ -54,7 +71,7 @@ jobs:
                 context: ./app
                 platforms: linux/amd64,linux/arm64
                 push: true
-                tags: ghcr.io/roxsross/terraform-devops-labs:1.0.0
+                tags: ${{ steps.version.outputs.image }}
 
     deploy:
         name: deploy
@@ -71,9 +88,12 @@ jobs:
             - name: version kubectl
               run: kubectl version
             - name: desplegando imagen
+              env: 
+                IMAGEN: ${{ needs.build.outputs.image}}
               run: |
-                IMAGEN="ghcr.io/roxsross/terraform-devops-labs:1.0.0"
                 echo $IMAGEN
                 echo "Desplegando la aplicacion en kubernetes"
                 sed "s|IMAGEN_APP|${IMAGEN}|" deployment.yaml | kubectl apply -f -
                 kubectl apply -f service.yaml
+            - name: Verificar despliegue
+              run: kubectl rollout status deploy/tareas -n clase-cicd --timeout=180s
