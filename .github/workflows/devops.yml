@@ -64,7 +64,11 @@ jobs:
               with:
                 registry: ghcr.io
                 username: ${{ github.actor }}
-                password: ${{ secrets.GITHUB_TOKEN }}            
+                password: ${{ secrets.GITHUB_TOKEN }}  
+            - name: docker nativo
+              run: |
+                docker version
+                docker build -t demo -f app/Dockerfile .          
             - name: Build and push
               uses: docker/build-push-action@v7
               with: 
