@@ -76,3 +76,9 @@ jobs:
               uses: azure/setup-kubectl@v4
             - name: version kubectl
               run: kubectl version
+            - name: desplegando imagen
+              run: |
+                IMAGEN=ghcr.io/roxsross/terraform-devops-labs:1.0.0
+                echo "Desplegando la aplicacion en kubernetes"
+                sed "s|IMAGEN_APP|${IMAGEN}" k8s/deployment.yaml
+                cat k8s/deployment.yaml
